@@ -36,7 +36,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const data = await req.json()
-  const word = await prisma.word.create({ data })
+  const body = await req.json()
+  const { word: wordText, definition, pronunciation, partOfSpeech, example, origin, synonyms, antonyms, difficulty, category, bengaliMeaning } = body
+
+  if (!wordText || typeof wordText !== 'string' || !wordText.trim()) {
+    return NextResponse.json({ error: 'Word is required' }, { status: 400 })
+  }
+  if (!definition || typeof definition !== 'string' || !definition.trim()) {
+    return NextResponse.json({ error: 'Definition is required' }, { status: 400 })
+  }
+
+  const word = await prisma.word.create({
+    data: {
+      word: String(wordText).trim(),
+      definition: String(definition).trim(),
+      pronunciation: pronunciation ? String(pronunciation).trim() : null,
+      partOfSpeech: partOfSpeech ? String(partOfSpeech).trim() : null,
+      example: example ? String(example).trim() : null,
+      origin: origin ? String(origin).trim() : null,
+      synonyms: synonyms ? String(synonyms).trim() : null,
+      antonyms: antonyms ? String(antonyms).trim() : null,
+      difficulty: difficulty ? String(difficulty).trim() : 'medium',
+      category: category ? String(category).trim() : null,
+      bengaliMeaning: bengaliMeaning ? String(bengaliMeaning).trim() : null,
+    },
+  })
   return NextResponse.json(word)
 }

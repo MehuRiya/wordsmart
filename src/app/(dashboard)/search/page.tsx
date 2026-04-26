@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Word {
@@ -32,12 +32,20 @@ export default function SearchPage() {
     setLoading(false)
   }, [])
 
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
     setQuery(val)
-    const timeout = setTimeout(() => search(val), 300)
-    return () => clearTimeout(timeout)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => search(val), 300)
   }
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
 
   const toggleBookmark = async (wordId: number) => {
     const res = await fetch('/api/bookmarks', {

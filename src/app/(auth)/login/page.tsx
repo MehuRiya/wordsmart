@@ -1,12 +1,14 @@
 'use client'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const registered = searchParams.get('registered') === '1'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -51,6 +53,11 @@ export default function LoginPage() {
         </div>
         <div className="glass rounded-2xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
           <h2 className="text-xl font-semibold text-slate-200 mb-6">Sign In</h2>
+          {registered && (
+            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-4 py-3 text-emerald-400 text-sm mb-4">
+              ✓ Account created successfully! Please sign in.
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-1.5">Email</label>
@@ -111,5 +118,13 @@ export default function LoginPage() {
         </div>
       </motion.div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   )
 }

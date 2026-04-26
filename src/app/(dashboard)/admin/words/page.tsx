@@ -13,6 +13,15 @@ interface Word {
   difficulty: string
 }
 
+const emptyWord: Omit<Word, 'id'> = {
+  word: '',
+  pronunciation: '',
+  partOfSpeech: '',
+  definition: '',
+  example: '',
+  difficulty: 'medium',
+}
+
 export default function AdminWordsPage() {
   const { data: session } = useSession()
   const router = useRouter()
@@ -22,6 +31,8 @@ export default function AdminWordsPage() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<Word | null>(null)
+  const [adding, setAdding] = useState(false)
+  const [newWord, setNewWord] = useState<Omit<Word, 'id'>>(emptyWord)
   const [saving, setSaving] = useState(false)
 
   const limit = 20
@@ -56,6 +67,20 @@ export default function AdminWordsPage() {
     load()
   }
 
+  const addWord = async () => {
+    if (!newWord.word.trim() || !newWord.definition.trim()) return
+    setSaving(true)
+    await fetch('/api/words', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newWord),
+    })
+    setSaving(false)
+    setAdding(false)
+    setNewWord(emptyWord)
+    load()
+  }
+
   const deleteWord = async (id: number) => {
     if (!confirm('Delete this word?')) return
     await fetch(`/api/words/${id}`, { method: 'DELETE' })
@@ -71,6 +96,9 @@ export default function AdminWordsPage() {
           <h1 className="text-2xl font-bold text-white">Manage Words</h1>
           <p className="text-slate-400 mt-1">{total} words total</p>
         </div>
+        <button onClick={() => { setAdding(true); setNewWord(emptyWord) }} className="btn-primary text-sm px-4 py-2">
+          + Add Word
+        </button>
       </div>
 
       <div className="flex gap-3">
@@ -82,6 +110,44 @@ export default function AdminWordsPage() {
           className="flex-1 px-4 py-2.5 bg-[rgba(15,15,26,0.8)] border border-[rgba(99,102,241,0.3)] rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
         />
       </div>
+
+      {adding && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setAdding(false)}>
+          <div className="card w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-bold text-white mb-4">Add New Word</h2>
+            <div className="space-y-3">
+              {(['word', 'pronunciation', 'partOfSpeech', 'definition', 'example'] as const).map((field) => (
+                <div key={field}>
+                  <label className="block text-sm text-slate-400 mb-1 capitalize">{field}</label>
+                  {field === 'definition' || field === 'example' ? (
+                    <textarea
+                      value={newWord[field] || ''}
+                      onChange={(e) => setNewWord({ ...newWord, [field]: e.target.value })}
+                      rows={3}
+                      className="w-full px-3 py-2 bg-[rgba(15,15,26,0.8)] border border-[rgba(99,102,241,0.3)] rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 resize-none"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={newWord[field] || ''}
+                      onChange={(e) => setNewWord({ ...newWord, [field]: e.target.value })}
+                      className="w-full px-3 py-2 bg-[rgba(15,15,26,0.8)] border border-[rgba(99,102,241,0.3)] rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button onClick={addWord} disabled={saving || !newWord.word.trim() || !newWord.definition.trim()} className="btn-primary px-6 py-2 disabled:opacity-50">
+                {saving ? 'Adding...' : 'Add Word'}
+              </button>
+              <button onClick={() => setAdding(false)} className="btn-secondary px-6 py-2">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {editing && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setEditing(null)}>
