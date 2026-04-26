@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          String    @default("user")
+  createdAt     DateTime  @default(now())
+
+  progress      UserWordProgress[]
+  quizAttempts  QuizAttempt[]
+  bookmarks     Bookmark[]
+  streak        Streak?
+}
+
+model Word {
+  id             Int       @id @default(autoincrement())
+  word           String    @unique
+  pronunciation  String?
+  partOfSpeech   String?
+  definition     String
+  bengaliMeaning String?
+  synonyms       String?
+  antonyms       String?
+  example        String?
+  origin         String?
+  difficulty     String    @default("medium")
+  category       String?
+  createdAt      DateTime  @default(now())
+
+  progress       UserWordProgress[]
+  bookmarks      Bookmark[]
+}
+
+model UserWordProgress {
+  id           String    @id @default(cuid())
+  userId       String
+  wordId       Int
+  status       String    @default("new")
+  correctCount Int       @default(0)
+  wrongCount   Int       @default(0)
+  lastSeen     DateTime?
+  nextReview   DateTime?
+
+  user         User      @relation(fields: [userId], references: [id])
+  word         Word      @relation(fields: [wordId], references: [id])
+
+  @@unique([userId, wordId])
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  wordId    Int
+  quizType  String
+  correct   Boolean
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  wordId    Int
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  word      Word     @relation(fields: [wordId], references: [id])
+
+  @@unique([userId, wordId])
+}
+
+model Streak {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  currentStreak Int       @default(0)
+  longestStreak Int       @default(0)
+  lastActivity  DateTime?
+
+  user          User      @relation(fields: [userId], references: [id])
+}
