@@ -27,7 +27,7 @@ export default function AdminWordsPage() {
   const limit = 20
 
   useEffect(() => {
-    if (session && (session.user as any).role !== 'admin') router.push('/')
+    if (session && session.user.role !== 'admin') router.push('/')
   }, [session, router])
 
   const load = useCallback(async () => {

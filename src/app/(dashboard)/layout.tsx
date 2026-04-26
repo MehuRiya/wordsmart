@@ -38,7 +38,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (!session) return null
 
-  const isAdmin = (session.user as any).role === 'admin'
+  const isAdmin = session.user.role === 'admin'
 
   const allNavItems = isAdmin
     ? [...navItems, { href: '/admin', label: 'Admin', icon: '⚙️' }]

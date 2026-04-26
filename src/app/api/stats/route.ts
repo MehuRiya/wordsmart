@@ -7,7 +7,7 @@ export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const userId = (session.user as any).id
+  const userId = session.user.id
 
   const [totalWords, learned, weak, bookmarkCount, streak, quizAttempts, recentProgress] =
     await Promise.all([

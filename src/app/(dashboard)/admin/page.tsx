@@ -25,7 +25,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (session && (session.user as any).role !== 'admin') {
+    if (session && session.user.role !== 'admin') {
       router.push('/')
     }
   }, [session, router])
